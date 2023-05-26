@@ -1,17 +1,15 @@
-package bookmanagementapp.Service;
+package bookmanagementapp.service;
 
-import bookmanagementapp.Model.Book;
-import bookmanagementapp.Repository.BookRepository;
+import bookmanagementapp.model.Book;
+import bookmanagementapp.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class BookService {
-
     private final BookRepository bookRepository;
 
     @Autowired
@@ -19,11 +17,10 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
-    @GetMapping
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
-    @GetMapping("/{id}")
+
     public Book getBookById(@PathVariable Long id) {
         Optional<Book> optionalBook = bookRepository.findById(id);
         if (optionalBook.isEmpty()) {
@@ -31,11 +28,11 @@ public class BookService {
         }
         return optionalBook.get();
     }
-    @PostMapping
+
     public Book createBook(@RequestBody Book book) {
         return bookRepository.save(book);
     }
-    @PutMapping("/{id}")
+
     public Book updateBook(Long id, Book bookDetails) {
         Book book = getBookById(id);
 
@@ -45,7 +42,7 @@ public class BookService {
 
         return bookRepository.save(book);
     }
-    @DeleteMapping("/{id}")
+
     public void deleteBook(Long id) {
         Book book = getBookById(id);
         bookRepository.delete(book);

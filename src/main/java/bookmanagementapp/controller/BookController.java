@@ -1,16 +1,14 @@
-package bookmanagementapp.Controller;
+package bookmanagementapp.controller;
 
-import bookmanagementapp.Model.Book;
-import bookmanagementapp.Service.BookService;
+import bookmanagementapp.model.Book;
+import bookmanagementapp.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/books")
 public class BookController {
-
     private final BookService bookService;
 
     @Autowired
