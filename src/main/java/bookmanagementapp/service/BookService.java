@@ -21,7 +21,7 @@ public class BookService {
         return bookRepository.findAll();
     }
 
-    public Book getBookById(@PathVariable Long id) {
+    public Book getBookById(Long id) {
         Optional<Book> optionalBook = bookRepository.findById(id);
         if (optionalBook.isEmpty()) {
             throw new IllegalArgumentException("Book not found with id: " + id);
@@ -29,7 +29,7 @@ public class BookService {
         return optionalBook.get();
     }
 
-    public Book createBook(@RequestBody Book book) {
+    public Book createBook(Book book) {
         return bookRepository.save(book);
     }
 
