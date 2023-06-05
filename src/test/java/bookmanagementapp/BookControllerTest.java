@@ -1,10 +1,14 @@
 package bookmanagementapp;
 
 import bookmanagementapp.controller.BookController;
+import bookmanagementapp.dto.BookDto;
+import bookmanagementapp.mapper.BookMapper;
 import bookmanagementapp.model.Book;
 import bookmanagementapp.service.BookService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,15 +28,24 @@ public class BookControllerTest {
     @MockBean
     private BookService bookService;
 
+    private BookMapper bookMapper;
+
+    @BeforeEach
+    public void setup() {
+        MockitoAnnotations.openMocks(this);
+    }
+
     @Test
     public void testGetAllBooks() throws Exception {
-        List<Book> books = Arrays.asList(
-                new Book(1L, "Book 1", "Author 1", "ISBN-1"),
-                new Book(2L, "Book 2", "Author 2", "ISBN-2")
-        );
-        Mockito.when(bookService.getAllBooks()).thenReturn(books);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/books"))
+        BookDto bookDto1 = new BookDto(1L, "Book 1", "Author 1", "ISBN-1");
+        BookDto bookDto2 = new BookDto(2L, "Book 2", "Author 2", "ISBN-2");
+        List<BookDto> bookDtos =Arrays.asList(bookDto1,bookDto2);
+
+        Mockito.when(bookService.getAllBooks()).thenReturn(bookDtos);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/books")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1L))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].title").value("Book 1"))
@@ -47,10 +60,12 @@ public class BookControllerTest {
     @Test
     public void testGetBookById() throws Exception {
         Long id = 1L;
-        Book book = new Book(id, "Book 1", "Author 1", "ISBN-1");
-        Mockito.when(bookService.getBookById(id)).thenReturn(book);
+        BookDto bookDto = new BookDto(id, "Book 1", "Author 1", "ISBN-1");
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/books/{id}", id))
+        Mockito.when(bookService.getBookById(id)).thenReturn(bookDto);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/books/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1L))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Book 1"))
@@ -60,8 +75,8 @@ public class BookControllerTest {
 
     @Test
     public void testCreateBook() throws Exception {
-        Book book = new Book(1L, "Book 1", "Author 1", "ISBN-1");
-        Mockito.when(bookService.createBook(Mockito.any(Book.class))).thenReturn(book);
+        BookDto bookDto = new BookDto(1L, "Book 1", "Author 1", "ISBN-1");
+        Mockito.when(bookService.createBook(bookDto)).thenReturn(bookDto);
 
         String bookJson = "{\"id\": 1, \"title\": \"Book 1\", \"author\": \"Author 1\", \"isbn\": \"ISBN-1\"}";
 
@@ -78,8 +93,8 @@ public class BookControllerTest {
     @Test
     public void testUpdateBook() throws Exception {
         Long id = 1L;
-        Book updatedBook = new Book(id, "Updated Book", "Updated Author", "Updated ISBN");
-        Mockito.when(bookService.updateBook(Mockito.anyLong(), Mockito.any(Book.class))).thenReturn(updatedBook);
+        BookDto updatedBookDto = new BookDto(id, "Updated Book", "Updated Author", "Updated ISBN");
+        Mockito.when(bookService.updateBook(id,updatedBookDto)).thenReturn(updatedBookDto);
 
         String updatedBookJson = "{\"id\": 1, \"title\": \"Updated Book\", \"author\": \"Updated Author\", \"isbn\": \"Updated ISBN\"}";
 

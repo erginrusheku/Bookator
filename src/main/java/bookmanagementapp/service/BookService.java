@@ -1,50 +1,66 @@
 package bookmanagementapp.service;
 
+import bookmanagementapp.dto.BookDto;
+import bookmanagementapp.mapper.BookMapper;
 import bookmanagementapp.model.Book;
 import bookmanagementapp.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class BookService {
     private final BookRepository bookRepository;
 
+    private final BookMapper bookMapper;
+
     @Autowired
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository, BookMapper bookMapper) {
         this.bookRepository = bookRepository;
+        this.bookMapper = bookMapper;
     }
 
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
-    }
+    public List<BookDto> getAllBooks() {
+        List<Book> books = bookRepository.findAll();
+        List<BookDto> bookDtos = new ArrayList<>();
 
-    public Book getBookById(Long id) {
-        Optional<Book> optionalBook = bookRepository.findById(id);
-        if (optionalBook.isEmpty()) {
-            throw new IllegalArgumentException("Book not found with id: " + id);
+        for (Book book : books) {
+            BookDto bookDto = bookMapper.toDto(book);
+            bookDtos.add(bookDto);
         }
-        return optionalBook.get();
+
+        return bookDtos;
     }
 
-    public Book createBook(Book book) {
-        return bookRepository.save(book);
+    public BookDto getBookById(Long id) throws  IllegalArgumentException {
+        Book book = bookRepository.findById(id)
+                 .orElseThrow(() -> new IllegalArgumentException("Book not found"));
+        return bookMapper.toDto(book);
     }
 
-    public Book updateBook(Long id, Book bookDetails) {
-        Book book = getBookById(id);
+    public BookDto createBook(BookDto bookDto) {
+        Book book = bookMapper.toEntity(bookDto);
+        Book savedBook = bookRepository.save(book);
+        return bookMapper.toDto(savedBook);
+    }
 
-        book.setTitle(bookDetails.getTitle());
-        book.setAuthor(bookDetails.getAuthor());
-        book.setIsbn(bookDetails.getIsbn());
+    public BookDto updateBook(Long id, BookDto bookDetails) throws IllegalArgumentException {
+        Book existingBook = bookRepository.findById(id)
+                        .orElseThrow(() -> new IllegalArgumentException("Book not found with id" + id));
 
-        return bookRepository.save(book);
+        existingBook.setTitle(bookDetails.getTitle());
+        existingBook.setAuthor(bookDetails.getAuthor());
+        existingBook.setIsbn(bookDetails.getIsbn());
+
+        Book savedBook = bookRepository.save(existingBook);
+
+        return bookMapper.toDto(savedBook);
     }
 
     public void deleteBook(Long id) {
-        Book book = getBookById(id);
-        bookRepository.delete(book);
+        bookRepository.deleteById(id);
     }
 }

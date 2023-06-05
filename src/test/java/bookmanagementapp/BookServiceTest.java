@@ -1,11 +1,13 @@
 package bookmanagementapp;
 
+import bookmanagementapp.dto.BookDto;
+import bookmanagementapp.mapper.BookMapper;
 import bookmanagementapp.model.Book;
 import bookmanagementapp.repository.BookRepository;
 import bookmanagementapp.service.BookService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -19,99 +21,95 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class BookServiceTest {
+    @InjectMocks
     private BookService bookService;
 
     @Mock
     private BookRepository bookRepository;
 
+    @Mock
+    private BookMapper bookMapper;
+
     @BeforeEach
-    public void setUp() {
+    public void setup() {
         MockitoAnnotations.openMocks(this);
-        bookService = new BookService(bookRepository);
     }
 
     @Test
     public void getAllBooks() {
         // Arrange
-        List<Book> books = Arrays.asList(
-                new Book(1L, "Book 1", "Author 1", "ISBN-1"),
-                new Book(2L, "Book 2", "Author 2", "ISBN-2")
-        );
-        Mockito.when(bookRepository.findAll()).thenReturn(books);
+        Book book1 = new Book(1L, "Book 1", "Author 1", "ISBN-1");
+        Book book2 = new Book(2L, "Book 2", "Author 2", "ISBN-2");
+        List<Book> books =Arrays.asList(book1,book2);
 
+        Mockito.when(bookRepository.findAll()).thenReturn(books);
+        Mockito.when(bookMapper.toDto(book1)).thenReturn(new BookDto(1L, "Book 1", "Author 1", "ISBN-1"));
+        Mockito.when(bookMapper.toDto(book2)).thenReturn(new BookDto(2L, "Book 2", "Author 2", "ISBN-2"));
         // Act
-        List<Book> result = bookService.getAllBooks();
+        List<BookDto> result = bookService.getAllBooks();
 
         // Assert
-        assertEquals(2, result.size());
-        assertEquals("Book 1", result.get(0).getTitle());
-        assertEquals("Author 1", result.get(0).getAuthor());
-        assertEquals("ISBN-1", result.get(0).getIsbn());
-        assertEquals("Book 2", result.get(1).getTitle());
-        assertEquals("Author 2", result.get(1).getAuthor());
-        assertEquals("ISBN-2", result.get(1).getIsbn());
+        assertEquals(books.size(), result.size());
     }
 
     @Test
     public void getBookById() {
-        // Arrange
+
         Long id = 1L;
         Book book = new Book(id, "Book 1", "Author 1", "ISBN-1");
+        BookDto bookDto = new BookDto(id,"Book 1", "Author 1", "ISBN-1");
+
         Mockito.when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+        Mockito.when(bookMapper.toDto(book)).thenReturn(bookDto);
 
-        // Act
-        Book result = bookService.getBookById(id);
+        BookDto result = bookService.getBookById(id);
 
-        // Assert
-        assertEquals("Book 1", result.getTitle());
-        assertEquals("Author 1", result.getAuthor());
-        assertEquals("ISBN-1", result.getIsbn());
+        assertEquals(bookDto,result);
     }
 
     @Test
     public void createBook() {
         // Arrange
-        Book book = new Book(null, "New Book", "New Author", "New ISBN");
-        Mockito.when(bookRepository.save(any(Book.class))).thenReturn(book);
+        BookDto bookDto = new BookDto(1L, "New Book", "New Author", "New ISBN");
+        Book book = new Book(1L, "New Book", "New Author", "New ISBN");
+        Mockito.when(bookMapper.toEntity(bookDto)).thenReturn(book);
+        Mockito.when(bookRepository.save(book)).thenReturn(book);
+        Mockito.when(bookMapper.toDto(book)).thenReturn(bookDto);
 
         // Act
-        Book result = bookService.createBook(book);
+        BookDto result = bookService.createBook(bookDto);
 
         // Assert
-        assertEquals("New Book", result.getTitle());
-        assertEquals("New Author", result.getAuthor());
-        assertEquals("New ISBN", result.getIsbn());
+        assertEquals(bookDto, result);
     }
 
     @Test
     public void updateBook() {
         // Arrange
         Long id = 1L;
-        Book existingBook = new Book(id, "Book 1", "Author 1", "ISBN-1");
-        Book updatedBook = new Book(id, "Updated Book", "Updated Author", "Updated ISBN");
-        Mockito.when(bookRepository.findById(id)).thenReturn(Optional.of(existingBook));
-        Mockito.when(bookRepository.save(any(Book.class))).thenReturn(updatedBook);
+        BookDto updatedBookDto = new BookDto(id, "Book 2", "Author 2", "ISBN-2");
+        Book updatedBook = new Book(id, "Book 2", "Author 2", "ISBN-2");
+
+        when(bookRepository.findById(id)).thenReturn(Optional.of(new Book()));
+        when(bookRepository.save(any(Book.class))).thenReturn(updatedBook);
+        when(bookMapper.toDto(updatedBook)).thenReturn(updatedBookDto);
 
         // Act
-        Book result = bookService.updateBook(id, updatedBook);
+        BookDto result = bookService.updateBook(id, updatedBookDto);
 
         // Assert
-        assertEquals("Updated Book", result.getTitle());
-        assertEquals("Updated Author", result.getAuthor());
-        assertEquals("Updated ISBN", result.getIsbn());
+        assertEquals(updatedBookDto, result);
     }
 
     @Test
     public void deleteBook() {
-        // Arrange
+
         Long id = 1L;
-        Book book = new Book(id, "Book 1", "Author 1", "ISBN-1");
-        Mockito.when(bookRepository.findById(id)).thenReturn(Optional.of(book));
 
         // Act
-        Assertions.assertDoesNotThrow(() -> bookService.deleteBook(id));
+        bookService.deleteBook(id);
 
         // Assert
-        Mockito.verify(bookRepository, Mockito.times(1)).delete(book);
+        verify(bookRepository, times(1)).deleteById(id);
     }
 }

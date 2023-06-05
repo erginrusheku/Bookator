@@ -1,6 +1,6 @@
 package bookmanagementapp.controller;
 
-import bookmanagementapp.model.Book;
+import bookmanagementapp.dto.BookDto;
 import bookmanagementapp.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,20 +17,20 @@ public class BookController {
     }
 
     @GetMapping
-    public List<Book> getAllBooks() {
+    public List<BookDto> getAllBooks() {
         return bookService.getAllBooks();
     }
 
     @PostMapping
-    public Book createBook(@RequestBody Book book) {
-        return bookService.createBook(book);
+    public BookDto createBook(@RequestBody BookDto bookDto) {
+        return bookService.createBook(bookDto);
     }
 
     @GetMapping("/{id}")
-    public Book getById(@PathVariable Long id){ return bookService.getBookById(id);}
+    public BookDto getById(@PathVariable Long id){ return bookService.getBookById(id);}
 
     @PutMapping("/{id}")
-    public Book updateBook(@PathVariable Long id, @RequestBody Book bookDetails) {
+    public BookDto updateBook(@PathVariable Long id, @RequestBody BookDto bookDetails) {
         return bookService.updateBook(id, bookDetails);
     }
 
